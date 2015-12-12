@@ -24,14 +24,14 @@ class PuzzleSolver:
     with dimensions such as 4x4, 6x9, 9x9. 
     '''
 
-    DICTIONARY = ['OX','CAT','TOY','AT','DOG','CATAPULT','T']
-    input_list = None
-    result = 0
+    DICTIONARY = ['OX','CAT','TOY','AT','DOG','CATAPULT','T']    
 
     def __init__(self, input_list):
-        self.input_list = input_list
+        self.input_list = input_list        
         if self.isValidInput():
-            return self    
+            self.result = 0
+            self.puzzle_width = len(input_list[0])
+            self.puzzle_height = len(input_list)
 
     def IsWord(self, testWord):
         if testWord in self.DICTIONARY:
@@ -39,13 +39,14 @@ class PuzzleSolver:
         return False
 
     def isValidInput(self):
-        if not isinstance(self.input_list, list):
-            raise WrongInputException(0, 'Init parameter is not instance of list')
+        if not isinstance(self.input_list, list) or len(self.input_list) == 0:
+            raise WrongInputException(
+                0, 'Init parameter is not instance of the list or is empty')
         else:
             inner_list_length = 0
             for index, charList in enumerate(self.input_list):
-                if not isinstance(charList, list):
-                    raise WrongInputException(1, 'Row {} is not a list'.format(index))
+                if not hasattr(charList, '__iter__'):
+                    raise WrongInputException(1, 'Row {} is not iterable'.format(index))
                 else:
                     inner_list_length = len(charList)
 
@@ -61,59 +62,69 @@ class PuzzleSolver:
                         raise WrongInputException(4, 'Element #{} in #{} row is not alphabetical: "{}"'.format(j, i, char))
                     elif len(char) != 1:
                         raise WrongInputException(5, 'Element #{} in #{} is not a single char: "{}"'.format(j, i, char))
+            return True
 
 
-    def findWords(self):        
+    def findWords(self):
         if self.isValidInput():
-            for y, charList in enumerate(self.input_list):
-                for x, char in enumerate(charList):
-                    self.result += self.findWordsInCoords(x, y)
-        return self.result
-
-    def findWordsInCoords(self, x, y):
-        axisList = self.getAxisListByCoords(x, y)
-        for axis in axisList:
+            string_list = self.getStringList()
+            
             for word in self.DICTIONARY:
-                self.result += self.findWordInCharList(axis)
+                if len(word) == 1:
+                    for char_list in self.input_list:
+                        string = ''.join(char_list)
+                        self.result += string.count(word)
+                else:
+                    for string in string_list:
+                        self.result += self.findWordInString(word, string)
+            return self.result
 
-    def findWordInCharList(self, word, charList):
-        result = 0        
-        char_string = ''.join(charList)
-        if len(word) == 1:
-            result += char_string.count(word)
-        else:
-            result += sum(char_string[i:].startswith(word) for i in range(len(char_string)))
-            result += sum(char_string[i:].startswith(word[::-1]) for i in range(len(char_string)))
-                
-        return result
+    @staticmethod
+    def findWordInString(word, string):
+        result = 0
+        if len(word) > 1:            
+            result += sum(string[i:].startswith(word) for i in range(len(string)))
+            result += sum(string[i:].startswith(word[::-1]) for i in range(len(string)))                
+            return result
 
-    def getaAxis(self):
-        axis = []
-        map(lambda char_list: axis.append(char_list), self.input_list)
-        
-        diagonals = {
-            'x_pos': self.input_list[y][x:],
-            'x_neg': reversed(self.input_list[y][:x+1]),
-            'y_pos': [charList[x] for charList in self.input_list[:y+1]],
-            'y_neg': reversed([charList[x] for charList in self.input_list[y:]]),
-            'diag_1_quad': [],
-            'diag_2_quad': [],
-            'diag_3_quad': [],
-            'diag_4_quad': []
-        }
+    def getStringList(self):
+        axis = [''.join(char_list) for char_list in self.input_list]
 
-        for v_index, charList in enumerate(reversed(charList[:y+1])):
-            diagonals['diag_1_quad'].append(charList[x+v_index])
+        for i in range(self.puzzle_width):
+            axis.append(''.join([char_list[i] for char_list in self.input_list]))
 
-        for v_index, charList in enumerate(reversed(charList[:y+1])):
-            if x-v_index >= 0:
-                diagonals['diag_2_quad'].append(charList[x-v_index])
 
-        for v_index, charList in enumerate(charList[:y+1]):
-            if x-v_index >= 0:
-                diagonals['diag_3_quad'].append(charList[x-v_index])
+        original_puzzle = self.input_list
 
-        for v_index, charList in enumerate(charList[y:]):
-            diagonals['diag_4_quad'].append(charList[x+v_index])
+        if self.puzzle_height > self.puzzle_width:
+            # rotating clockwise            
+            self.__init__(zip(*original_puzzle[::-1]))
 
-        return list(diagonals.itervalues())
+        diagonales, diagonales_reversed = [], []
+        for i in range(self.puzzle_width-1):
+            diagonal = []
+            another_diagonal = []
+            j = 0
+            for v_index, char_list in enumerate(self.input_list):
+                if i+j < self.puzzle_width:
+                    diagonal.append(char_list[i+j])
+                    another_diagonal.append(char_list[::-1][i+j])
+                    j += 1
+            diagonales.append(''.join(diagonal))
+            diagonales_reversed.append(''.join(another_diagonal))
+
+        for i in range(self.puzzle_width)[:0:-1]:
+            diagonal = []
+            another_diagonal = []
+            j = 0
+            for char_list in reversed(self.input_list):
+                if i - j >= 0:
+                    diagonal.append(char_list[i-j])
+                    another_diagonal.append(char_list[::-1][i-j])
+                    j += 1
+            diagonales.append(''.join(reversed(diagonal)))
+            diagonales_reversed.append(''.join(reversed(another_diagonal)))
+
+        self.__init__(original_puzzle)
+
+        return axis + list(set(diagonales)) + list(set(diagonales_reversed))
