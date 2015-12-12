@@ -12,15 +12,15 @@ class PuzzleSolverTest(unittest.TestCase):
             ['Y', 'O', 'T']]
 
         ps = PuzzleSolver(puzzle)
-        result = ps.findWords()
+        result = ps.find_words()
         self.assertIsInstance(result, int)
 
-    def test_findWordInString(self):
+    def test_find_word_in_string(self):
         string = 'CATAPULT'
-        result = PuzzleSolver.findWordInString('AT', string)
+        result = PuzzleSolver.find_word_in_string('AT', string)
         self.assertEqual(result, 2)
 
-    def test_getStringList(self):
+    def test_get_string_list(self):
         puzzle = [
             ['C', 'A', 'T'],
             ['X', 'Z', 'T'],
@@ -43,8 +43,8 @@ class PuzzleSolverTest(unittest.TestCase):
             'AOT', 'LO', 'TZY', 'ATO', 'LYX', 'TOT', 'OX',
             'AX', 'PTT', 'UOO']
 
-        self.assertEqual(set(ps.getStringList()), set(result))
-        self.assertEqual(set(ps2.getStringList()), set(result2))
+        self.assertEqual(set(ps.get_string_list()), set(result))
+        self.assertEqual(set(ps2.get_string_list()), set(result2))
         
     def test_result_true(self):
         puzzle_list = [
@@ -78,11 +78,11 @@ class PuzzleSolverTest(unittest.TestCase):
             for index, puzzle in enumerate(puzzle_list):
                 ps = PuzzleSolver(puzzle)
                 if index == 0:
-                    self.assertEqual(ps.findWords(), 8)
+                    self.assertEqual(ps.find_words(), 8)
                 elif index in [1, 3, 4]:
-                    self.assertEqual(ps.findWords(), 22)
+                    self.assertEqual(ps.find_words(), 22)
                 else:
-                    self.assertEqual(ps.findWords(), 69)
+                    self.assertEqual(ps.find_words(), 69)
    
 
 

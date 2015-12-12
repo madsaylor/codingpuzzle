@@ -28,17 +28,12 @@ class PuzzleSolver:
 
     def __init__(self, input_list):
         self.input_list = input_list        
-        if self.isValidInput():
+        if self.input_valid():
             self.result = 0
             self.puzzle_width = len(input_list[0])
             self.puzzle_height = len(input_list)
 
-    def IsWord(self, testWord):
-        if testWord in self.DICTIONARY:
-            return True
-        return False
-
-    def isValidInput(self):
+    def input_valid(self):
         if not isinstance(self.input_list, list) or len(self.input_list) == 0:
             raise WrongInputException(
                 0, 'Init parameter is not instance of the list or is empty')
@@ -65,9 +60,9 @@ class PuzzleSolver:
             return True
 
 
-    def findWords(self):
-        if self.isValidInput():
-            string_list = self.getStringList()
+    def find_words(self):
+        if self.input_valid():
+            string_list = self.get_string_list()
             
             for word in self.DICTIONARY:
                 if len(word) == 1:
@@ -76,18 +71,18 @@ class PuzzleSolver:
                         self.result += string.count(word)
                 else:
                     for string in string_list:
-                        self.result += self.findWordInString(word, string)
+                        self.result += self.find_word_in_string(word, string)
             return self.result
 
     @staticmethod
-    def findWordInString(word, string):
+    def find_word_in_string(word, string):
         result = 0
         if len(word) > 1:            
             result += sum(string[i:].startswith(word) for i in range(len(string)))
             result += sum(string[i:].startswith(word[::-1]) for i in range(len(string)))                
             return result
 
-    def getStringList(self):
+    def get_string_list(self):
         axis = [''.join(char_list) for char_list in self.input_list]
 
         for i in range(self.puzzle_width):
